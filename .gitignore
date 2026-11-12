@@ -1,46 +1,44 @@
-# Dependencies
+# ============================================================
+#  Laravel 12 — .gitignore
+#
+#  Isi folder runtime (storage/*, bootstrap/cache, public/uploads,
+#  database/*.sqlite) di-ignore lewat file .gitignore DI DALAM
+#  masing-masing folder, supaya struktur foldernya tetap ikut
+#  ke-track saat di-clone.
+# ============================================================
+
+# ---- Dependencies ----
 /vendor/
 /node_modules/
 
-# Environment & Secrets
+# ---- Environment & secrets ----
 .env
 .env.*
 !.env.example
 /auth.json
+/storage/*.key
 
-# Build & Public Uploads
+# ---- Build output & generated assets ----
 /public/build/
 /public/hot
 /public/storage
-/public/uploads/
 
-# Laravel Runtime, Storage & Cache
-/bootstrap/cache/*.php
-/storage/app/*
-/storage/framework/cache/*
-/storage/framework/sessions/*
-/storage/framework/testing/*
-/storage/framework/views/*
-/storage/framework/*.php
-/storage/framework/down
-/storage/framework/maintenance.php
-/storage/framework/schedule-*
-/storage/framework/services.json
-/storage/logs/*
-/storage/*.key
+# ---- Logs ----
 *.log
 
-# Database & Testing
-/database/*.sqlite*
+# ---- Testing ----
 /.phpunit.cache/
 .phpunit.result.cache
 
-# OS & Editor
+# ---- OS & editor ----
 .DS_Store
 Thumbs.db
 /.idea/
 /.vscode/
+/.fleet/
+/.nova/
+/.zed/
 
-# Asisten
+# ---- AI assistant tooling ----
 .claude/
 .commandcode/
