@@ -1,0 +1,46 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+/auth.json
+
+# Build & Public Uploads
+/public/build/
+/public/hot
+/public/storage
+/public/uploads/
+
+# Laravel Runtime, Storage & Cache
+/bootstrap/cache/*.php
+/storage/app/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/framework/*.php
+/storage/framework/down
+/storage/framework/maintenance.php
+/storage/framework/schedule-*
+/storage/framework/services.json
+/storage/logs/*
+/storage/*.key
+*.log
+
+# Database & Testing
+/database/*.sqlite*
+/.phpunit.cache/
+.phpunit.result.cache
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+/.idea/
+/.vscode/
+
+# Asisten
+.claude/
+.commandcode/
