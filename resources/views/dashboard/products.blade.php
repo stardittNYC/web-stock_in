@@ -1,23 +1,13 @@
-<!DOCTYPE html>
-<html lang="{{ $lang }}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ t('products') }} - StockIn</title>
-</head>
+@extends('layouts.dashboard')
 
-<body style="width:100%; margin:0; background:#FAF7F2; font-family:Arial,sans-serif; color:#49382D;">
+@section('title')
+    {{ t('products') }} - StockIn
+@endsection
 
 @php $currentPage = 'dashboard.products'; @endphp
 
-<div style="display:flex; width:100%; height:100vh;">
-    @include('dashboard.partials.sidebar')
-
-    <main style="margin-left:230px; flex:1; min-width:0; min-height:100vh; display:flex; flex-direction:column;">
-
-        @include('dashboard.partials.header')
-
+@section('content')
+        <!-- Judul dan filter -->
         <section style="padding:32px; display:flex; flex-direction:column; box-sizing:border-box;">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:25px; flex-shrink:0;">
                 <div>
@@ -30,14 +20,18 @@
                 </button>
             </div>
 
+            <!-- PENCARIAN DAN FILTER -->
             <form method="GET" style="display:flex; flex-shrink:0; gap:12px; flex-wrap:wrap; background:white; border:1.5px solid #E9E1D7; border-radius:12px; padding:18px; margin-bottom:20px;">
+                <!-- Kirim ID bisnis aktif sebagai parameter tersembunyi -->
                 <input type="hidden" name="business_id" value="{{ $business_id }}">
 
+                <!-- Input pencarian produk berdasarkan nama -->
                 <div style="flex:1; min-width:200px; position:relative;">
                     <i data-lucide="search" style="position:absolute; left:12px; top:13px; width:18px; height:18px; color:#948578;"></i>
                     <input type="search" name="search" value="{{ $search }}" placeholder="{{ t('search_product') }}" style="width:100%; box-sizing:border-box; padding:12px 12px 12px 39px; border:1px solid #E9E1D7; border-radius:8px; outline-color:#B99A7D;">
                 </div>
 
+                <!-- Dropdown filter berdasarkan kategori -->
                 <select name="category_id" style="min-width:180px; padding:12px; border:1px solid #E9E1D7; border-radius:8px; background:white; color:#49382D;">
                     <option value="">{{ t('all_categories') }}</option>
                     @foreach ($categories as $category)
@@ -47,19 +41,23 @@
                     @endforeach
                 </select>
 
+                <!-- Dropdown Filter Urutan Kode Produk -->
                 <select name="sort_code" style="min-width:150px; padding:12px; border:1px solid #E9E1D7; border-radius:8px; background:white; color:#49382D;">
                     <option value="">{{ t('sort_code') }}</option>
                     <option value="ASC" {{ $sortCode === 'ASC' ? 'selected' : '' }}>{{ t('sort_code_asc') }}</option>
                     <option value="DESC" {{ $sortCode === 'DESC' ? 'selected' : '' }}>{{ t('sort_code_desc') }}</option>
                 </select>
 
+                <!-- Tombol Terapkan Filter -->
                 <button type="submit" style="padding:12px 18px; background:#76553D; color:white; border:0; border-radius:8px; cursor:pointer; font-weight:600;">{{ t('search') }}</button>
 
+                <!-- Tombol Reset Filter -->
                 <a href="{{ route('dashboard.products', ['business_id' => $business_id]) }}" style="display:inline-flex; align-items:center; justify-content:center; padding:12px 18px; background:#B45F5F; color:white; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px; box-sizing:border-box;">
                     {{ t('reset') }}
                 </a>
             </form>
 
+            <!-- Tabel Daftar Produk -->
             <div style=" height:500px; overflow-y:auto; overflow-x:auto; position:relative; background:white; border:1.5px solid #E9E1D7; border-radius:12px;">
                 <table style="width:100%; border-collapse:collapse; text-align:left; white-space:nowrap;">
                     <thead>
@@ -69,50 +67,81 @@
                             <th style="position:sticky; top:0; z-index:2; padding:12px; width:12%; background:#F5EFE8;">{{ t('category') }}</th>
                             <th style="position:sticky; top:0; z-index:2; padding:12px; width:13%; background:#F5EFE8;">{{ t('purchase_price') }}</th>
                             <th style="position:sticky; top:0; z-index:2; padding:12px; width:13%; background:#F5EFE8;">{{ t('selling_price') }}</th>
-                            <th style="position:sticky; top:0; z-index:2; padding:12px; width:7%; background:#F5EFE8;">{{ t('stock') }}</th>
-                            <th style="position:sticky; top:0; z-index:2; padding:12px; width:12%; background:#F5EFE8;">{{ t('expiration_date') }}</th>
-                            <th style="position:sticky; top:0; z-index:2; padding:12px; width:15%; background:#F5EFE8;">{{ t('notes') }}</th>
-                            <th style="position:sticky; top:0; z-index:2; padding:12px; width:10%; background:#F5EFE8;">{{ t('action') }}</th>
+                            <th style="position:sticky; top:0; z-index:2; padding:12px; width:10%; background:#F5EFE8;">{{ t('current_stock') }}</th>
+                            <th style="position:sticky; top:0; z-index:2; padding:12px; width:10%; background:#F5EFE8;">{{ t('expiration_date') }}</th>
+                            <th style="position:sticky; top:0; z-index:2; padding:12px; width:16%; background:#F5EFE8;">{{ t('notes') }}</th>
+                            <th style="position:sticky; top:0; z-index:2; padding:12px; width:6%; background:#F5EFE8;">{{ t('action') }}</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <!-- Loop untuk merender setiap baris data produk -->
                         @forelse ($products as $product)
-                            <tr style="border-top:1px solid #F0E8DF;">
-                                <td style="padding:10px 12px;">
-                                    <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-                                        @if (!empty($product->photo) && file_exists(public_path('uploads/products/'.$product->id.'/'.$product->photo)))
-                                            <img src="{{ asset('uploads/products/'.$product->id.'/'.$product->photo) }}" style="width:50px; height:50px; min-width:50px; flex-shrink:0; border-radius:10px; object-fit:cover; border:1px solid #E9E1D7;">
-                                        @else
-                                            <div style="width:50px; height:50px; min-width:50px; flex-shrink:0; border-radius:10px; background:#F5EFE8; display:flex; align-items:center; justify-content:center;"><i data-lucide="image" style="width:22px;color:#76553D;"></i></div>
-                                        @endif
-                                        <span style="font-weight:600; display:block; min-width:140px; max-width:220px; white-space:normal; word-break:break-word; overflow-wrap:break-word;">{{ $product->product_name }}</span>
-                                    </div>
+                            @php
+                                $photoPathSystem = public_path('uploads/products/' . $product->id . '/' . $product->photo);
+                                $photoPathWeb = asset('uploads/products/' . $product->id . '/' . $product->photo);
+                            @endphp
+                            <!-- Baris Data Produk -->
+                            <tr style="border-top:1px solid #F1EBE4; font-size:14px;">
+                                <!-- Foto dan Nama Produk -->
+                                <td style="padding:10px 12px; display:flex; align-items:center; gap:10px; font-weight:600;">
+                                    @if (!empty($product->photo) && file_exists($photoPathSystem))
+                                        <!-- Foto produk -->
+                                        <img src="{{ $photoPathWeb }}" alt="{{ $product->product_name }}" style="width:36px; height:36px; object-fit:cover; border-radius:8px; border:1px solid #E9E1D7;">
+                                    @else
+                                        <!-- Placeholder inisial nama jika foto tidak tersedia -->
+                                        <div style="width:36px; height:36px; background:#F5EFE8; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#76553D; font-weight:bold; font-size:14px; border:1px solid #E9E1D7;">
+                                            {{ strtoupper(substr($product->product_name, 0, 1)) }}
+                                        </div>
+                                    @endif
+                                    <!-- Nama produk -->
+                                    <span style="overflow-wrap:anywhere; white-space: normal; line-height: 1.3;">
+                                        {{ $product->product_name }}
+                                    </span>
                                 </td>
-                                <td style="padding:10px 12px; color:#49382D; font-size:13px; font-weight:600; min-width:80px; max-width:80px; white-space: normal; overflow-wrap:anywhere; word-break:break-word;">
-                                    {{ $product->product_code }}
+                                <!-- Kode Produk -->
+                                <td style="padding:10px 12px; color:#81776D;">{{ $product->product_code }}</td>
+                                <!-- Kategori Produk -->
+                                <td style="padding:10px 12px; color:#81776D;">
+                                    {{ $product->category_name ?? '-' }}
                                 </td>
-                                <td style="padding:10px 12px; color:#81776D; font-size:13px font-weight:600; min-width: 100px; max-width: 100px; white-space: normal; overflow-wrap:anywhere; word-break:break-word;">{{ $product->category_name ?? t('uncategorized') }}</td>
-                                <td style="padding:10px 12px; white-space:nowrap;">{{ format_money($product->purchase_price, $business->currency) }}</td>
-                                <td style="padding:10px 12px; white-space:nowrap;">{{ format_money($product->selling_price, $business->currency) }}</td>
-                                <td style="padding:10px 12px;">{{ number_format((int) $product->current_stock) }}</td>
+                                <!-- Harga Beli Produk -->
+                                <td style="padding:10px 12px; color:#81776D;">
+                                    {{ format_money($product->purchase_price, $business->currency) }}
+                                </td>
+                                <!-- Harga Jual Produk -->
+                                <td style="padding:10px 12px; color:#81776D;">
+                                    {{ format_money($product->selling_price, $business->currency) }}
+                                </td>
+                                <!-- Stok Saat Ini -->
+                                <td style="padding:10px 12px; font-weight:600;">
+                                    @if ((int) $product->current_stock <= 5)
+                                        <span style="color:#B45F5F; background:#FBECEC; padding:4px 8px; border-radius:6px; font-size:12px;">
+                                            {{ number_format((int) $product->current_stock) }}
+                                        </span>
+                                    @else
+                                        <span style="color:#6F8966; background:#EBF3E8; padding:4px 8px; border-radius:6px; font-size:12px;">
+                                            {{ number_format((int) $product->current_stock) }}
+                                        </span>
+                                    @endif
+                                </td>
+                                <!-- Tanggal Kedaluwarsa Produk -->
                                 <td style="padding:10px 12px;">
-                                    @if ($product->expiration_date)
+                                    @if (!empty($product->expiration_date))
                                         @php
-                                            $today = new DateTime();
-                                            $expDate = new DateTime($product->expiration_date);
-                                            $interval = $today->diff($expDate);
-                                            $daysLeft = (int) $interval->format('%r%a');
+                                            $daysLeft = (int) now()->diffInDays(\Carbon\Carbon::parse($product->expiration_date), false);
                                         @endphp
-
                                         @if ($daysLeft < 0)
+                                            <!-- Badge status sudah kedaluwarsa -->
                                             <span style="display:inline-block; padding:4px 8px; background:#FBECEC; color:#B45F5F; border-radius:6px; font-size:12px; font-weight:600;" title="Sudah Kedaluwarsa">
-                                                {{ date('d/m/Y', strtotime($product->expiration_date)) }} (Expired)
+                                                {{ date('d/m/Y', strtotime($product->expiration_date)) }}
                                             </span>
                                         @elseif ($daysLeft <= 30)
+                                            <!-- Badge status hampir kedaluwarsa (<= 30 hari) -->
                                             <span style="display:inline-block; padding:4px 8px; background:#FFF8E7; color:#B7791F; border-radius:6px; font-size:12px; font-weight:600;" title="Hampir Kedaluwarsa">
                                                 {{ date('d/m/Y', strtotime($product->expiration_date)) }}
                                             </span>
                                         @else
+                                            <!-- Tanggal kedaluwarsa normal -->
                                             <span style="color:#81776D; font-size:13px;">
                                                 {{ date('d/m/Y', strtotime($product->expiration_date)) }}
                                             </span>
@@ -121,6 +150,7 @@
                                         <span style="color:#81776D;">-</span>
                                     @endif
                                 </td>
+                                <!-- Catatan -->
                                 <td style="padding:10px 12px; color:#81776D; font-size:13px; min-width:160px; max-width:180px; white-space: normal; overflow-wrap:anywhere; word-break:break-word;">
                                     @if (!empty(trim($product->notes ?? '')))
                                         {{ $product->notes }}
@@ -128,11 +158,14 @@
                                         <span style="color:#B8B0A6;">—</span>
                                     @endif
                                 </td>
+                                <!-- Tombol edit & hapus -->
                                 <td style="padding:10px 12px;">
                                     <div style="display:flex; gap:8px; align-items:center;">
+                                        <!-- Tombol edit -->
                                         <button type="button" onclick="openEditProduct({{ (int) $product->id }})" style="width:32px; height:32px; border:none; background:#F5EFE8; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#76553D;" title="{{ t('edit') }}">
                                             <i data-lucide="pencil" style="width:16px;height:16px;"></i>
                                         </button>
+                                        <!-- Tombol hapus -->
                                         <button type="button" onclick="deleteProduct({{ (int) $product->id }})" style="width:32px; height:32px; border:none; background:#FBECEC; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#B45F5F;" title="{{ t('delete') }}" aria-label="{{ t('delete_product') }}">
                                             <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
                                         </button>
@@ -140,6 +173,7 @@
                                 </td>
                             </tr>
                         @empty
+                            <!-- Tampilan baris khusus saat data produk tidak ditemukan -->
                             <tr>
                                 <td colspan="9" style="padding:35px; text-align:center; color:#81776D;">{{ t('no_products') }}</td>
                             </tr>
@@ -149,16 +183,19 @@
             </div>
 
         </section>
-    </main>
-</div>
 
+<!-- COMPONENT MODAL -->
 @include('dashboard.partials.modal-product')
+@endsection
 
+@push('scripts')
+<!-- ICON, ASSETS JS HELPERS -->
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="{{ asset('assets/js/csrf.js') }}"></script>
 <script src="{{ asset('assets/js/currency.js') }}"></script>
 <script src="{{ asset('assets/js/toast.js') }}" defer></script>
 
+<!-- DEKLARASI VARIABEL GLOBAL UNTUK JS EXTERNAL -->
 <script>
 const CURRENT_BUSINESS_ID = {{ (int) $business_id }};
 const APP_TRANSLATIONS = {
@@ -181,6 +218,4 @@ const APP_TRANSLATIONS = {
 };
 </script>
 <script src="{{ asset('assets/js/products.js') }}" defer></script>
-
-</body>
-</html>
+@endpush

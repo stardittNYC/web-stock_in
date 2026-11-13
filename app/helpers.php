@@ -2,21 +2,18 @@
 
 /*
 |--------------------------------------------------------------------------
-| Application Helpers
+| Application Helpers (Fungsi Pembantu Aplikasi)
 |--------------------------------------------------------------------------
 |
-| Global helper functions used across the StockIn application. They mirror
-| the behaviour of the original procedural helpers (includes/language.php
-| and includes/currency.php).
+| Kumpulan fungsi helper global yang digunakan di seluruh aplikasi StockIn.
+| Berfungsi menerjemahkan teks, memformat mata uang, dan menyusun URL berkas unggahan.
 |
 */
 
 if (! function_exists('t')) {
     /**
-     * Translate a StockIn language key (group "app").
-     *
-     * Falls back to the raw key when no translation is found so untranslated
-     * strings never render as "app.something".
+     * Menerjemahkan kunci bahasa aplikasi dari grup terjemahan 'app'.
+     * Jika terjemahan tidak ditemukan, kembalikan teks kunci asli agar tidak muncul 'app.kunci'.
      */
     function t(?string $key, array $replace = []): string
     {
@@ -33,11 +30,12 @@ if (! function_exists('t')) {
 
 if (! function_exists('format_money')) {
     /**
-     * Format a numeric amount as a currency string (same rules as the
-     * original formatMoneyPHP helper).
+     * Memformat angka nominal menjadi string mata uang lengkap dengan simbol dan pemisah ribuan.
+     * Mengikuti format yang sama seperti fungsi formatMoneyPHP pada versi web sebelumnya.
      */
     function format_money($amount, $currency = 'IDR'): string
     {
+        // Pemisah desimal dan ribuan untuk tiap jenis mata uang
         $formats = [
             'IDR' => ['decimal' => ',', 'thousands' => '.'],
             'USD' => ['decimal' => '.', 'thousands' => ','],
@@ -47,6 +45,7 @@ if (! function_exists('format_money')) {
             'CNY' => ['decimal' => '.', 'thousands' => ','],
         ];
 
+        // Pemetaan simbol prefix mata uang internasional
         $symbols = [
             'IDR' => 'Rp',
             'USD' => '$',
@@ -56,11 +55,14 @@ if (! function_exists('format_money')) {
             'CNY' => 'CN¥',
         ];
 
+        // Memastikan kode mata uang berformat huruf kapital
         $currency = strtoupper((string) $currency);
 
+        // Menentukan aturan format dan simbol sesuai mata uang atau default IDR
         $format = $formats[$currency] ?? $formats['IDR'];
         $symbol = $symbols[$currency] ?? 'Rp';
 
+        // Memformat angka dengan 2 digit desimal serta pemisah ribuan
         $formattedAmount = number_format(
             (float) $amount,
             2,
@@ -68,13 +70,14 @@ if (! function_exists('format_money')) {
             $format['thousands']
         );
 
+        // Mengembalikan hasil kombinasi simbol mata uang dan angka terformat
         return $symbol.' '.$formattedAmount;
     }
 }
 
 if (! function_exists('upload_url')) {
     /**
-     * Build a public URL for a file stored under public/uploads.
+     * Membangun URL publik lengkap untuk berkas yang tersimpan di bawah folder public/uploads.
      */
     function upload_url(string $path): string
     {

@@ -6,17 +6,19 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
+/**
+ * Seeder utama untuk mengisi basis data aplikasi StockIn.
+ */
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
     /**
-     * Seed the application's database.
+     * Menjalankan seed data ke database.
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
+        // Membuat akun pengguna bawaan untuk keperluan pengujian
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',

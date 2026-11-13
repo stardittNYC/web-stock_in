@@ -2,10 +2,13 @@
 
 namespace App\Support;
 
+/**
+ * Kelas pembantu untuk menangani label terjemahan dan gaya warna badge jenis transaksi inventaris.
+ */
 class TransactionType
 {
     /**
-     * Human readable (translated) label for a transaction type.
+     * Mengembalikan teks label terjemahan yang mudah dibaca untuk setiap tipe transaksi inventaris.
      */
     public static function label(?string $type): string
     {
@@ -18,16 +21,20 @@ class TransactionType
     }
 
     /**
-     * Badge colours (background/color) for a transaction type.
+     * Mengembalikan konfigurasi warna badge (warna latar belakang dan warna teks) untuk tiap jenis transaksi.
      *
      * @return array{background: string, color: string}
      */
     public static function badge(?string $type): array
     {
         return match ($type) {
+            // Hijau untuk barang masuk (Stock In)
             'stock_in' => ['background' => '#E8F5E9', 'color' => '#2E7D32'],
+            // Merah untuk barang keluar / penjualan (Stock Out)
             'stock_out' => ['background' => '#FBECEC', 'color' => '#B45F5F'],
+            // Kuning oranye untuk penyesuaian audit stok (Stock Audit)
             'stock_audit' => ['background' => '#FFF4E5', 'color' => '#B26A00'],
+            // Default netral
             default => ['background' => '#F5EFE8', 'color' => '#76553D'],
         };
     }
