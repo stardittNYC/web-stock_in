@@ -138,6 +138,12 @@
 @endsection
 
 @push('scripts')
+<script>
+window.dashboardStockConfig = {
+    mode: 'out',
+    currency: {{ Illuminate\Support\Js::from($business->currency ?? 'IDR') }}
+};
+</script>
 <!-- Library Ikon & Asset JS -->
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="{{ asset('assets/js/csrf.js') }}"></script>
@@ -147,131 +153,9 @@
 // Inisialisasi ikon Lucide
 lucide.createIcons();
 
-// Mata uang bisnis aktif yang dipakai untuk format harga
-const businessCurrency = {{ Illuminate\Support\Js::from($business->currency ?? 'IDR') }};
-
 // Ambil elemen-elemen penting dari halaman
 const productSelect = document.getElementById('product_id');
-const stockDisplay = document.getElementById('stockDisplay');
-const priceDisplay = document.getElementById('priceDisplay');
 const quantityInput = document.getElementById('quantity');
-const totalAmount = document.getElementById('totalAmount');
-const categoryFilter = document.getElementById('category_filter');
-
-let currentPrice = 0;
-
-// Simpan seluruh opsi produk beserta stok, harga & kategorinya untuk keperluan filter
-let allProductOptions = [];
-if (productSelect) {
-    allProductOptions = Array.from(productSelect.options).map(opt => ({
-        value: opt.value,
-        text: opt.textContent,
-        stock: opt.getAttribute('data-stock') || opt.dataset.stock || 0,
-        price: opt.getAttribute('data-price') || opt.dataset.price || 0,
-        category: opt.getAttribute('data-category') || opt.dataset.category || 'UNCATEGORIZED'
-    }));
-}
-
-// Format angka menjadi format mata uang
-function formatCurrency(value) {
-    try {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: businessCurrency,
-            minimumFractionDigits: 0
-        }).format(value);
-    } catch (e) {
-        return businessCurrency + ' ' + Number(value).toLocaleString('en-US');
-    }
-}
-
-// Menghitung total nilai dari jumlah x harga jual
-function calculateTotal() {
-    const quantity = parseInt(quantityInput.value) || 0;
-    const total = quantity * currentPrice;
-
-    if (total > 0) {
-        totalAmount.value = formatCurrency(total);
-    } else {
-        totalAmount.value = '-';
-    }
-}
-
-// Menampilkan stok & harga jual dari produk yang dipilih
-function updateProductDetails() {
-    if (!productSelect) return;
-
-    const selectedOption = productSelect.options[productSelect.selectedIndex];
-
-    if (!productSelect.value || !selectedOption) {
-        if (stockDisplay) stockDisplay.textContent = '-';
-        if (priceDisplay) priceDisplay.textContent = '-';
-        totalAmount.value = '-';
-        currentPrice = 0;
-        return;
-    }
-
-    const stock = parseInt(selectedOption.getAttribute('data-stock') || selectedOption.dataset.stock || 0);
-    const price = parseFloat(selectedOption.getAttribute('data-price') || selectedOption.dataset.price || 0);
-
-    currentPrice = price;
-
-    if (stockDisplay) stockDisplay.textContent = new Intl.NumberFormat().format(stock);
-    if (priceDisplay) priceDisplay.textContent = formatCurrency(price);
-
-    calculateTotal();
-}
-
-// Perbarui detail produk setiap kali produk diganti
-if (productSelect) {
-    productSelect.addEventListener('change', updateProductDetails);
-}
-
-// Hitung ulang total setiap kali jumlah diubah
-if (quantityInput) {
-    quantityInput.addEventListener('input', calculateTotal);
-}
-
-// Filter daftar produk berdasarkan kategori yang dipilih
-if (categoryFilter && productSelect) {
-    categoryFilter.addEventListener('change', function () {
-        const selectedCategory = this.value;
-
-        productSelect.innerHTML = '';
-
-        allProductOptions.forEach(opt => {
-            // Selalu tampilkan opsi placeholder (kosong)
-            if (!opt.value) {
-                const placeholderOpt = new Option(opt.text, opt.value);
-                productSelect.add(placeholderOpt);
-                return;
-            }
-
-            const productCategory = String(opt.category);
-            let isMatch = false;
-
-            if (selectedCategory === 'ALL') {
-                isMatch = true;
-            } else if (selectedCategory === 'UNCATEGORIZED' && (!productCategory || productCategory === 'null' || productCategory === 'UNCATEGORIZED')) {
-                isMatch = true;
-            } else if (productCategory === selectedCategory) {
-                isMatch = true;
-            }
-
-            // Tambahkan kembali opsi produk yang cocok dengan kategori
-            if (isMatch) {
-                const newOpt = new Option(opt.text, opt.value);
-                newOpt.setAttribute('data-stock', opt.stock);
-                newOpt.setAttribute('data-price', opt.price);
-                newOpt.setAttribute('data-category', opt.category);
-                productSelect.add(newOpt);
-            }
-        });
-
-        updateProductDetails();
-    });
-}
-
 const saveButton = document.getElementById('saveStockOut');
 
 // Menangani proses simpan stok keluar via Fetch AJAX

@@ -132,6 +132,11 @@
 @endsection
 
 @push('scripts')
+<script>
+window.dashboardStockConfig = {
+    mode: 'audit'
+};
+</script>
 <!-- Library Ikon & Asset JS -->
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="{{ asset('assets/js/csrf.js') }}"></script>
@@ -143,100 +148,6 @@ lucide.createIcons();
 
 // Ambil elemen-elemen penting dari halaman
 const productSelect = document.getElementById('product_id');
-const categoryFilter = document.getElementById('category_filter');
-
-// Simpan seluruh opsi produk beserta stok & kategorinya untuk keperluan filter
-let allProductOptions = [];
-if (productSelect) {
-    allProductOptions = Array.from(productSelect.options).map(opt => ({
-        value: opt.value,
-        text: opt.textContent,
-        stock: opt.getAttribute('data-stock') || opt.dataset.stock || 0,
-        category: opt.getAttribute('data-category') || opt.dataset.category || 'UNCATEGORIZED'
-    }));
-}
-
-// Menampilkan stok sistem dari produk yang dipilih
-function updateAuditStock() {
-    if (!productSelect) return;
-
-    const selectedOption = productSelect.options[productSelect.selectedIndex];
-
-    if (!productSelect.value || !selectedOption) {
-        document.getElementById('system_stock').textContent = '-';
-        calculateDifference();
-        return;
-    }
-
-    const stock = selectedOption.getAttribute('data-stock') || selectedOption.dataset.stock || '-';
-    document.getElementById('system_stock').textContent = stock;
-
-    calculateDifference();
-}
-
-// Perbarui stok sistem setiap kali produk diganti
-if (productSelect) {
-    productSelect.addEventListener('change', updateAuditStock);
-}
-
-// Menghitung selisih antara stok fisik dan stok sistem
-function calculateDifference() {
-    const systemStock = parseInt(document.getElementById('system_stock').textContent);
-
-    const physicalStock = parseInt(document.getElementById('physical_stock').value);
-
-    const result = document.getElementById('difference');
-
-    if (isNaN(systemStock) || isNaN(physicalStock)) {
-        result.textContent = '-';
-        return;
-    }
-
-    const difference = physicalStock - systemStock;
-
-    // Tampilkan tanda + jika stok fisik lebih banyak
-    result.textContent = difference > 0 ? '+' + difference : difference;
-}
-
-// Filter daftar produk berdasarkan kategori yang dipilih
-if (categoryFilter && productSelect) {
-    categoryFilter.addEventListener('change', function () {
-        const selectedCategory = this.value;
-
-        productSelect.innerHTML = '';
-
-        allProductOptions.forEach(opt => {
-            // Selalu tampilkan opsi placeholder (kosong)
-            if (!opt.value) {
-                const placeholderOpt = new Option(opt.text, opt.value);
-                productSelect.add(placeholderOpt);
-                return;
-            }
-
-            const productCategory = String(opt.category);
-            let isMatch = false;
-
-            if (selectedCategory === 'ALL') {
-                isMatch = true;
-            } else if (selectedCategory === 'UNCATEGORIZED' && (!productCategory || productCategory === 'null' || productCategory === 'UNCATEGORIZED')) {
-                isMatch = true;
-            } else if (productCategory === selectedCategory) {
-                isMatch = true;
-            }
-
-            // Tambahkan kembali opsi produk yang cocok dengan kategori
-            if (isMatch) {
-                const newOpt = new Option(opt.text, opt.value);
-                newOpt.setAttribute('data-stock', opt.stock);
-                newOpt.setAttribute('data-category', opt.category);
-                productSelect.add(newOpt);
-            }
-        });
-
-        updateAuditStock();
-    });
-}
-
 // Menangani proses simpan hasil audit via Fetch AJAX
 async function saveAudit() {
     const productId = productSelect.value;

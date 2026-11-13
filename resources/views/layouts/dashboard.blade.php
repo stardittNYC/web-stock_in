@@ -19,5 +19,6 @@
 </div>
 
 @stack('scripts')
+@vite('resources/js/dashboard-stock.js')
 </body>
 </html>

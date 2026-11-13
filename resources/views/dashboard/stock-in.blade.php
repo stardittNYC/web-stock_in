@@ -143,6 +143,14 @@
 @endsection
 
 @push('scripts')
+<script>
+window.dashboardStockConfig = {
+    mode: 'in',
+    currentStockPrompt: {{ Illuminate\Support\Js::from(t('current_stock_prompt')) }},
+    currentStockLabel: {{ Illuminate\Support\Js::from(t('current_stock_label')) }},
+    currency: 'IDR'
+};
+</script>
 <!-- Library Ikon & Asset JS -->
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="{{ asset('assets/js/csrf.js') }}"></script>
@@ -152,84 +160,7 @@
 // Inisialisasi ikon Lucide
 lucide.createIcons();
 
-// Ambil elemen-elemen penting dari halaman
 const productSelect = document.getElementById('product_id');
-const stockInfo = document.getElementById('currentStockInfo');
-const categoryFilter = document.getElementById('category_filter');
-
-// Simpan seluruh opsi produk beserta stok & kategorinya untuk keperluan filter
-let allProductOptions = [];
-if (productSelect) {
-    allProductOptions = Array.from(productSelect.options).map(opt => ({
-        value: opt.value,
-        text: opt.textContent,
-        stock: opt.getAttribute('data-stock') || opt.dataset.stock || 0,
-        category: opt.getAttribute('data-category') || opt.dataset.category || 'UNCATEGORIZED'
-    }));
-}
-
-// Menampilkan informasi stok saat ini dari produk yang dipilih
-function updateStockDisplay() {
-    if (!productSelect || !stockInfo) return;
-
-    const selectedOption = productSelect.options[productSelect.selectedIndex];
-
-    if (!productSelect.value || !selectedOption) {
-        stockInfo.textContent = {{ Illuminate\Support\Js::from(t('current_stock_prompt')) }};
-        return;
-    }
-
-    const currentStock = Number(
-        selectedOption.getAttribute('data-stock') || selectedOption.dataset.stock || 0
-    );
-
-    stockInfo.textContent = {{ Illuminate\Support\Js::from(t('current_stock_label')) }} + currentStock.toLocaleString();
-}
-
-// Perbarui tampilan stok setiap kali produk diganti
-if (productSelect) {
-    productSelect.addEventListener('change', updateStockDisplay);
-}
-
-// Filter daftar produk berdasarkan kategori yang dipilih
-if (categoryFilter && productSelect) {
-    categoryFilter.addEventListener('change', function () {
-        const selectedCategory = this.value;
-
-        productSelect.innerHTML = '';
-
-        allProductOptions.forEach(opt => {
-            // Selalu tampilkan opsi placeholder (kosong)
-            if (!opt.value) {
-                const placeholderOpt = new Option(opt.text, opt.value);
-                productSelect.add(placeholderOpt);
-                return;
-            }
-
-            const productCategory = String(opt.category);
-            let isMatch = false;
-
-            if (selectedCategory === 'ALL') {
-                isMatch = true;
-            } else if (selectedCategory === 'UNCATEGORIZED' && (!productCategory || productCategory === 'null' || productCategory === 'UNCATEGORIZED')) {
-                isMatch = true;
-            } else if (productCategory === selectedCategory) {
-                isMatch = true;
-            }
-
-            // Tambahkan kembali opsi produk yang cocok dengan kategori
-            if (isMatch) {
-                const newOpt = new Option(opt.text, opt.value);
-                newOpt.setAttribute('data-stock', opt.stock);
-                newOpt.setAttribute('data-category', opt.category);
-                productSelect.add(newOpt);
-            }
-        });
-
-        updateStockDisplay();
-    });
-}
-
 const stockInForm = document.getElementById('stockInForm');
 const stockInSubmitButton = document.getElementById('stockInSubmitButton');
 
