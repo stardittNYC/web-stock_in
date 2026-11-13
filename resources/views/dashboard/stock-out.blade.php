@@ -1,26 +1,14 @@
-<!DOCTYPE html>
-<html lang="{{ $lang }}">
+@extends('layouts.dashboard')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ t('stock_out_title') }} - StockIn</title>
-</head>
-
-<body style="margin:0; min-height:100vh; background:#FAF7F2; font-family:Arial,sans-serif; color:#49382D;">
+@section('title')
+    {{ t('stock_out_title') }} - StockIn
+@endsection
 
 @php $currentPage = 'dashboard.stock-out'; @endphp
 
-<div style="display:flex; min-height:100vh;">
-
-    @include('dashboard.partials.sidebar')
-
-    <main style="margin-left:230px; flex:1; min-width:0;">
-
-        @include('dashboard.partials.header')
-
+@section('content')
         <section style="padding:32px;">
+            <!-- JUDUL DAN DESKRIPSI HALAMAN -->
             <div style="margin-bottom:25px;">
                 <h1 style="margin:0; font-size:29px;">
                     {{ t('stock_out_title') }}
@@ -31,8 +19,10 @@
                 </p>
             </div>
 
+            <!-- KARTU FORM STOK KELUAR -->
             <div style="background:white; border:1px solid #E9E1D7; border-radius:12px; padding:28px; max-width:900px;">
 
+                <!-- Header kartu: ikon dan judul form -->
                 <div style="display:flex; align-items:center; gap:14px; margin-bottom:25px;">
                     <div style="width:55px; height:55px; border-radius:12px; background:#F5EFE8; display:flex; align-items:center; justify-content:center; color:#76553D;">
                         <i data-lucide="package-minus" style="width:28px;"></i>
@@ -49,6 +39,7 @@
                     </div>
                 </div>
 
+                <!-- Dropdown filter produk berdasarkan kategori -->
                 <div style="margin-bottom:22px;">
                     <label for="category_filter" style="display:block; font-weight:bold; margin-bottom:8px;">
                         {{ t('filter_category') }}
@@ -66,6 +57,7 @@
                     </select>
                 </div>
 
+                <!-- Pemilihan produk yang akan dikurangi stoknya -->
                 <div style="margin-bottom:22px;">
                     <label for="product_id" style="display:block; margin-bottom:8px; font-weight:600;">
                         {{ t('product_name') }}
@@ -78,6 +70,7 @@
                             {{ t('select_product_placeholder') }}
                         </option>
 
+                        <!-- Simpan stok, harga jual & kategori tiap produk sebagai atribut data -->
                         @foreach ($products as $product)
                             <option value="{{ (int) $product->id }}"
                                     data-stock="{{ (int) $product->current_stock }}"
@@ -88,6 +81,7 @@
                         @endforeach
                     </select>
 
+                    <!-- Info stok tersedia dan harga jual produk terpilih -->
                     <div style="margin-top:8px; font-size:13px; color:#81776D; line-height:1.5;">
                         <div>{{ t('available_stock_label') }}
                             <span id="stockDisplay">-</span>
@@ -98,6 +92,7 @@
                     </div>
                 </div>
 
+                <!-- Input jumlah stok yang dikeluarkan -->
                 <div style="margin-top:25px;">
                     <label style="display:block; font-weight:bold; margin-bottom:8px;">
                         {{ t('quantity_out') }}
@@ -107,6 +102,7 @@
                         style="width:100%; padding:14px; border:1px solid #E9E1D7; border-radius:10px; font-size:15px;">
                 </div>
 
+                <!-- Total nilai transaksi (dihitung otomatis, tidak bisa diedit) -->
                 <div style="margin-top:22px;">
                     <label style="display:block; font-weight:bold; margin-bottom:8px;">
                         {{ t('total_amount') }}
@@ -115,6 +111,7 @@
                     <input type="text" id="totalAmount" readonly value="-" style="width:100%; box-sizing:border-box; padding:13px; border:1px solid #E9E1D7; border-radius:9px; background:#FAF7F2; color:#76553D;">
                 </div>
 
+                <!-- Input catatan tambahan (opsional) -->
                 <div style="margin-top:25px;">
                     <label style="display:block; font-weight:bold; margin-bottom:8px;">
                         {{ t('notes') }}
@@ -127,6 +124,7 @@
                         style="width:100%; padding:10px 12px; box-sizing:border-box; border:1px solid #E9E1D7; border-radius:8px; font-size:14px; outline-color:#B99A7D;">
                 </div>
 
+                <!-- Tombol simpan stok keluar -->
                 <div style="padding-top:20px; display:flex; justify-content:flex-end;">
                     <button type="submit" id="saveStockOut" style="display:flex; align-items:center; gap:8px; padding:12px 19px; border:0; border-radius:9px; background:#76553D; color:white; font-weight:600; cursor:pointer;">
                         <i data-lucide="save" style="width:18px;height:18px;"></i>
@@ -137,18 +135,22 @@
             </div>
 
         </section>
-    </main>
-</div>
+@endsection
 
+@push('scripts')
+<!-- Library Ikon & Asset JS -->
 <script src="https://unpkg.com/lucide@latest"></script>
 <script src="{{ asset('assets/js/csrf.js') }}"></script>
 <script src="{{ asset('assets/js/toast.js') }}" defer></script>
 
 <script>
+// Inisialisasi ikon Lucide
 lucide.createIcons();
 
+// Mata uang bisnis aktif yang dipakai untuk format harga
 const businessCurrency = {{ Illuminate\Support\Js::from($business->currency ?? 'IDR') }};
 
+// Ambil elemen-elemen penting dari halaman
 const productSelect = document.getElementById('product_id');
 const stockDisplay = document.getElementById('stockDisplay');
 const priceDisplay = document.getElementById('priceDisplay');
@@ -158,6 +160,7 @@ const categoryFilter = document.getElementById('category_filter');
 
 let currentPrice = 0;
 
+// Simpan seluruh opsi produk beserta stok, harga & kategorinya untuk keperluan filter
 let allProductOptions = [];
 if (productSelect) {
     allProductOptions = Array.from(productSelect.options).map(opt => ({
@@ -169,6 +172,7 @@ if (productSelect) {
     }));
 }
 
+// Format angka menjadi format mata uang
 function formatCurrency(value) {
     try {
         return new Intl.NumberFormat('en-US', {
@@ -181,6 +185,7 @@ function formatCurrency(value) {
     }
 }
 
+// Menghitung total nilai dari jumlah x harga jual
 function calculateTotal() {
     const quantity = parseInt(quantityInput.value) || 0;
     const total = quantity * currentPrice;
@@ -192,6 +197,7 @@ function calculateTotal() {
     }
 }
 
+// Menampilkan stok & harga jual dari produk yang dipilih
 function updateProductDetails() {
     if (!productSelect) return;
 
@@ -216,14 +222,17 @@ function updateProductDetails() {
     calculateTotal();
 }
 
+// Perbarui detail produk setiap kali produk diganti
 if (productSelect) {
     productSelect.addEventListener('change', updateProductDetails);
 }
 
+// Hitung ulang total setiap kali jumlah diubah
 if (quantityInput) {
     quantityInput.addEventListener('input', calculateTotal);
 }
 
+// Filter daftar produk berdasarkan kategori yang dipilih
 if (categoryFilter && productSelect) {
     categoryFilter.addEventListener('change', function () {
         const selectedCategory = this.value;
@@ -231,6 +240,7 @@ if (categoryFilter && productSelect) {
         productSelect.innerHTML = '';
 
         allProductOptions.forEach(opt => {
+            // Selalu tampilkan opsi placeholder (kosong)
             if (!opt.value) {
                 const placeholderOpt = new Option(opt.text, opt.value);
                 productSelect.add(placeholderOpt);
@@ -248,6 +258,7 @@ if (categoryFilter && productSelect) {
                 isMatch = true;
             }
 
+            // Tambahkan kembali opsi produk yang cocok dengan kategori
             if (isMatch) {
                 const newOpt = new Option(opt.text, opt.value);
                 newOpt.setAttribute('data-stock', opt.stock);
@@ -263,17 +274,20 @@ if (categoryFilter && productSelect) {
 
 const saveButton = document.getElementById('saveStockOut');
 
+// Menangani proses simpan stok keluar via Fetch AJAX
 if (saveButton) {
     saveButton.addEventListener('click', async function () {
         const productId = productSelect.value;
         const quantity = quantityInput.value;
         const notes = document.getElementById('notes').value;
 
+        // Validasi: produk harus dipilih
         if (!productId) {
             showToast({{ Illuminate\Support\Js::from(t('select_product_first')) }}, 'error');
             return;
         }
 
+        // Validasi: jumlah harus minimal 1
         if (!quantity || quantity < 1) {
             showToast({{ Illuminate\Support\Js::from(t('enter_quantity_out')) }}, 'error');
             return;
@@ -282,6 +296,7 @@ if (saveButton) {
         const selectedOption = productSelect.options[productSelect.selectedIndex];
         const stockAvailable = parseInt(selectedOption.getAttribute('data-stock') || selectedOption.dataset.stock || 0);
 
+        // Validasi: jumlah tidak boleh melebihi stok tersedia
         if (parseInt(quantity) > stockAvailable) {
             showToast({{ Illuminate\Support\Js::from(t('insufficient_stock')) }} + ' ' + stockAvailable, 'error');
             return;
@@ -294,6 +309,7 @@ if (saveButton) {
         formData.append('notes', notes);
 
         try {
+            // Kirim data ke server
             const response = await fetch('{{ route('dashboard.stock-out.store') }}', {
                 method: 'POST',
                 body: formData
@@ -302,6 +318,7 @@ if (saveButton) {
             const result = await response.json();
 
             if (result.success) {
+                // Tampilkan notifikasi sukses lalu muat ulang halaman
                 showToast(result.message, 'success');
                 setTimeout(() => {
                     window.location.reload();
@@ -317,6 +334,4 @@ if (saveButton) {
 }
 
 </script>
-
-</body>
-</html>
+@endpush
